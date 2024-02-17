@@ -1,0 +1,18 @@
+creaza domeniu nou
+        adauga simbolul max
+creaza domeniu nou
+        adauga simbolul x
+        adauga simbolul x ca argument
+        adauga simbolul y
+        adauga simbolul y ca argument
+stergere domeniu curent
+        sterge simbolul y
+        sterge simbolul x
+revine in domeniul parinte
+        adauga simbolul i
+stergere domeniu curent
+        sterge simbolul i
+        sterge simbolul max
+        sterge simbolul x
+        sterge simbolul y
+revine in domeniul parinte

@@ -1,0 +1,173 @@
+#include <stdio.h>
+
+enum { ID, INT, REAL, STR, VAR, FUNCTION, IF, ELSE, WHILE, END, RETURN, 
+	TYPE_INT, TYPE_REAL, TYPE_STR, STR, COMMA, COLON, SEMICOLON, LPAR, 
+	RPAR, FINISH, ADD, SUB, MUL, DIV, AND, OR, EQUAL, ASSIGN, NOTEQ, LESS};	// toate codurile atomilor din Quick, fara SPACE si COMMENT
+
+typedef struct {
+	int cod;		// codul atomului ( ID, INT, ...)
+}Atom;
+Atom atomi[10000];	// vectorul cu atomii extrasi din fisierul de intrare
+int nAtomi;	// numarul de atomi din vectorul atomi
+
+char bufin[30001];
+char* pch;
+
+// la fiecare apel returneaza codul unui atom
+int getNextTk()			// get next token (atom lexical)
+{
+	int state = 0;		// starea curenta
+	for (;;) {
+		char ch = *pch;	// caracterul curent
+		printf("#%d %c(%d)\n", state, ch, ch);	// pt debugging
+		// cate un case pentru fiecare stare din diagrama
+		switch (state) {
+		case 0:
+			// testam toate tranzitiile posibile din acea stare
+			if (isalpha(ch) || ch == '_') { state = 1; pch++; }
+			else if (isdigit(ch)) { state = 3; pch++; }
+			else if (ch == ' ' || ch == '\r' || ch == '\n' || ch == '\t') { pch++; }
+			else if (ch == '#') { state = 31; pch++; }
+			else if (ch == '"') { state = 8; pch++; }
+			else if (ch == ',') { state = 10; }
+			else if (ch == ':') { state = 12; }
+			else if (ch == ';') { state = 13; }
+			else if (ch == '(') { state = 14; }
+			else if (ch == ')') { state = 15; }
+			else if (ch == '\0') { state = 16; }
+			else if (ch == '+') { state = 17; }
+			else if (ch == '-') { state = 18; }
+			else if (ch == '*') { state = 19; }
+			else if (ch == '/') { state = 20; }
+			else if (ch == '&') { state = 21; pch++; }
+			else if (ch == '|') { state = 23; pch++; }
+			else if (ch == '=') { state = 25; pch++; }
+			else if (ch == '!') { state = 28; pch++; }
+			else if (ch == '<') { state = 30; }
+			else printf("Caracter invalid\n");
+			break;
+		case 1:
+			if (isalnum(ch) || ch == '_') { pch++; }
+			else { state = 2; }
+			break;
+		case 2:
+			addAtom(ID);	// adauga atomul gasit in lista de atomi
+			return ID;
+		case 3:
+			if (isdigit(ch)) { pch++; }
+			else if (ch == '.') { state = 5; pch++; }
+			else { state = 4; }
+			break;
+		case 4:
+			addAtom(INT);
+			return INT;
+		case 5:
+			if (isdigit(ch)) { state = 6; pch++; }
+			else printf("Dupa punctul zecimal trebuie sa urmeze o cifra");
+			break;
+		case 6:
+			if (isdigit(ch)) { pch++; }
+			else { state = 7; }
+			break;
+		case 7:
+			addAtom(REAL);
+			return REAL;
+		case 8:
+			if (!(ch == '"')) { pch++; }
+			else if (ch == '"') { state = 9; pch++; }
+			break;
+		case 9:
+			addAtom(STR);
+			return STR;
+		case 10:
+			addAtom(COMMA);
+			return COMMA;
+		case 12:
+			addAtom(COLON);
+			return COLON;
+		case 13:
+			addAtom(SEMICOLON);
+			return SEMICOLON;
+		case 14:
+			addAtom(LPAR);
+			return LPAR;
+		case 15:
+			addAtom(RPAR);
+			return RPAR;
+		case 16:
+			addAtom(FINISH);
+			return FINISH;
+		case 17:
+			addAtom(AND);
+			return AND;
+		case 18:
+			addAtom(SUB);
+			return SUB;
+		case 19:
+			addAtom(MUL);
+			return MUL;
+		case 20:
+			addAtom(DIV);
+			return DIV;
+		case 21:
+			if (ch == '&') { state = 22; }
+			break;
+		case 22:
+			addAtom(AND);
+			return AND;
+		case 23:
+			if (ch == '|') { state = 24; }
+			break;
+		case 24:
+			addAtom(OR);
+			return OR;
+		case 25:
+			if (ch == '=') { state = 26; }
+			else { state = 27; }
+			break;
+		case 26:
+			addAtom(EQUAL); 
+			return EQUAL;
+		case 27:
+			addAtom(ASSIGN);
+			return ASSIGN;
+		case 28:
+			if (ch == '=') { state = 29; }
+			break;
+		case 29:
+			addAtom(NOTEQ);
+			return NOTEQ;
+		case 30:
+			addAtom(LESS);
+			return LESS;
+		case 31:
+			if (ch == ' ') { state = 32; pch++; }
+			break;
+		case 32:
+			if (!(ch == '\n' || ch == '\r' || ch == '\0')) { state = 0; pch++; }
+			break;
+		default: 
+			printf("stare invalida %d\n", state);
+		}
+	}
+
+}
+
+int main()
+{
+	FILE* fis;
+	fis = fopen("1.q", "rb");
+	if (fis == NULL) {
+		printf("nu s-a putut deschide fisierul");
+		return -1;
+	}
+	int n = fread(bufin, 1, 30000, fis);	// returneaza nr de elemente citite integral
+	bufin[n] = '\0';
+	fclose(fis);
+	pch = bufin;	// initializare pch pe prima pozitie din bufin
+	// extragere atomi
+	while (getNextTk() != FINISH) {
+	}
+    printf("Hello World!\n");
+    return;
+}
